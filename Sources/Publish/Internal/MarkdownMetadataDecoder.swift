@@ -6,9 +6,9 @@
 
 import Foundation
 
-internal final class MarkdownMetadataDecoder: Decoder {
-    var userInfo: [CodingUserInfoKey : Any] { [:] }
-    let codingPath: [CodingKey]
+public final class MarkdownMetadataDecoder: Decoder {
+    public var userInfo: [CodingUserInfoKey : Any] { [:] }
+    public let codingPath: [CodingKey]
 
     private let metadata: [String : String]
     private let dateFormatter: DateFormatter
@@ -22,7 +22,7 @@ internal final class MarkdownMetadataDecoder: Decoder {
         self.dateFormatter = dateFormatter
     }
 
-    func container<T: CodingKey>(
+    public func container<T: CodingKey>(
         keyedBy type: T.Type
     ) throws -> KeyedDecodingContainer<T> {
         let typeID = ObjectIdentifier(type)
@@ -41,7 +41,7 @@ internal final class MarkdownMetadataDecoder: Decoder {
         return KeyedDecodingContainer(container)
     }
 
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    public func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         let prefix = codingPath.asPrefix(includingTrailingSeparator: false)
 
         guard let string = metadata[prefix] else {
@@ -54,7 +54,7 @@ internal final class MarkdownMetadataDecoder: Decoder {
         )
     }
 
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    public func singleValueContainer() throws -> SingleValueDecodingContainer {
         let prefix = codingPath.asPrefix(includingTrailingSeparator: false)
 
         guard let string = metadata[prefix] else {
