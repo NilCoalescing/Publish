@@ -14,9 +14,11 @@ public final class MarkdownMetadataDecoder: Decoder {
     private let dateFormatter: DateFormatter
     private lazy var keyedContainers = [ObjectIdentifier : Any]()
 
-    init(metadata: [String : String],
-         codingPath: [CodingKey] = [],
-         dateFormatter: DateFormatter) {
+    public init(
+        metadata: [String : String],
+        codingPath: [CodingKey] = [],
+        dateFormatter: DateFormatter
+    ) {
         self.metadata = metadata
         self.codingPath = codingPath
         self.dateFormatter = dateFormatter
