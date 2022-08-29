@@ -23,7 +23,8 @@ public struct Item<Site: Website>: AnyItem, Hashable {
     public var content: Content
     public var rssProperties: ItemRSSProperties
 
-    internal let relativePath: Path
+    /// Path within the section
+    public let relativePath: Path
 
     /// Initialize a new item programmatically. You can also create items from
     /// Markdown using the `addMarkdownFiles` step.
