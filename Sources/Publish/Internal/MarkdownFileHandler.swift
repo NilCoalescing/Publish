@@ -13,16 +13,19 @@ internal struct MarkdownFileHandler<Site: Website> {
         to context: inout PublishingContext<Site>
     ) async throws {
         let factory = context.makeMarkdownContentFactory()
-
+        
         if let indexFile = try? folder.file(named: "index.md") {
             do {
-                context.index.content = try factory.makeContent(fromFile: indexFile)
+                try TaskContext.$item.withValue(TaskContext.Item(path: "", section: nil)) {
+                    context.index.content = try factory.makeContent(fromFile: indexFile)
+                }
             } catch {
                 throw wrap(error, forPath: "\(folder.path)index.md")
             }
         }
-
-        let folderResults: [FolderResult] = try await folder.subfolders.concurrentMap { subfolder in
+        
+        let immutableContext = context
+        let folderResults: [FolderResult] = try await folder.subfolders.concurrentMap { [immutableContext] subfolder in
             guard let sectionID = Site.SectionID(rawValue: subfolder.name.lowercased()) else {
                 return try await .pages(makePagesForMarkdownFiles(
                     inFolder: subfolder,
@@ -32,13 +35,21 @@ internal struct MarkdownFileHandler<Site: Website> {
                 ))
             }
 
+            
             var sectionContent: Content?
+            let taskItem = TaskContext.Item(
+                path: immutableContext.sections[sectionID].path,
+                section: sectionID
+            )
+            
             
             let items: [Item<Site>] = try await subfolder.files.recursive.concurrentCompactMap { file in
                 guard file.isMarkdown else { return nil }
 
                 if file.nameExcludingExtension == "index", file.parent == subfolder {
-                    sectionContent = try factory.makeContent(fromFile: file)
+                    sectionContent = try TaskContext.$item.withValue(taskItem) {
+                        try factory.makeContent(fromFile: file)
+                    }
                     return nil
                 }
 
@@ -52,11 +63,13 @@ internal struct MarkdownFileHandler<Site: Website> {
                         path = Path(fileName)
                     }
 
-                    return try factory.makeItem(
-                        fromFile: file,
-                        at: path,
-                        sectionID: sectionID
-                    )
+                    return try TaskContext.$item.withValue(taskItem.with(path: path)) {
+                        try factory.makeItem(
+                            fromFile: file,
+                            at: path,
+                            sectionID: sectionID
+                        )
+                    }
                 } catch {
                     let path = Path(file.path(relativeTo: folder))
                     throw wrap(error, forPath: path)
@@ -116,7 +129,9 @@ private extension MarkdownFileHandler {
             }
 
             let pagePath = parentPath.appendingComponent(file.nameExcludingExtension)
-            return try factory.makePage(fromFile: file, at: pagePath)
+            return try TaskContext.$item.withValue(.at(path: pagePath)) {
+                try factory.makePage(fromFile: file, at: pagePath)
+            }
         }
 
         guard recursively else {
