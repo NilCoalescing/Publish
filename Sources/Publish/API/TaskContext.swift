@@ -9,8 +9,8 @@ import Foundation
 
 public enum TaskContext {
     public struct Item {
-        let path: Path
-        let section: (any WebsiteSectionID)?
+        public let path: Path
+        public let section: (any WebsiteSectionID)?
     }
     
     @TaskLocal
