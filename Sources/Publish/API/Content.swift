@@ -47,7 +47,22 @@ public struct Content: Hashable, ContentProtocol {
     }
 }
 
-public protocol BodySource: Equatable {}
+public protocol BodySource: Equatable {
+    var html: String { get }
+    var node: Node<HTML.BodyContext> { get }
+}
+
+struct MarkdownNode: Component {
+    let markdown: String
+    
+    var body: any Component {
+        EmptyComponent()
+    }
+    
+    func render(indentedBy indentationKind: Indentation.Kind?) -> String {
+        MarkdownParser().parse(markdown).html
+    }
+}
 
 
 
@@ -55,7 +70,13 @@ public extension Content {
     /// Type that represents the main renderable body of a piece of content.
     struct Body: Hashable {
         struct Markdown: BodySource {
+            
+            let html: String
             let markdownString: String
+            
+            var node: Node<HTML.BodyContext> {
+                .raw(html)
+            }
         }
         
         struct BodyNode: BodySource {
@@ -64,11 +85,29 @@ public extension Content {
             static func ==(lhs: Self, rhs: Self) -> Bool {
                 lhs.node.render() == rhs.node.render()
             }
+            
+            var html: String {
+                node.render(indentedBy: .none)
+            }
+        }
+        
+        
+        struct RawBody: BodySource {
+            var node: Plot.Node<Plot.HTML.BodyContext> {
+                .raw(html)
+            }
+            
+            let html: String
         }
         
         
         /// The content's renderable HTML.
-        public var html: String
+        public var html: String {
+            self.bodySource.html
+        }
+                
+        
+        
         /// A node that can be used to embed the content in a Plot hierarchy.
         public var node: Node<HTML.BodyContext> {
             if let node = self.bodySource as? BodyNode {
@@ -77,7 +116,7 @@ public extension Content {
             return .raw(html)
         }
         
-        public var bodySource: (any BodySource)?
+        public var bodySource: any BodySource
         
         /// Whether this value doesn't contain any content.
         public var isEmpty: Bool { html.isEmpty }
@@ -85,14 +124,13 @@ public extension Content {
         /// Initialize an instance with a ready-made HTML string.
         /// - parameter html: The content HTML that the instance should cointain.
         public init(html: String) {
-            self.html = html
+            self.bodySource = RawBody(html: html)
         }
         
         /// Initialize an instance with a ready-made HTML string.
         /// - parameter html: The content HTML that the instance should cointain.
         public init(html: String, markdown: String) {
-            self.html = html
-            self.bodySource = Markdown(markdownString: markdown)
+            self.bodySource = Markdown(html: html, markdownString: markdown)
         }
 
         /// Initialize an instance with a Plot `Node`.
@@ -100,7 +138,6 @@ public extension Content {
         /// - parameter indentation: Any indentation to apply when rendering the node.
         public init(node: Node<HTML.BodyContext>,
                     indentation: Indentation.Kind? = nil) {
-            html = node.render(indentedBy: indentation)
             bodySource = BodyNode(node: node)
         }
 

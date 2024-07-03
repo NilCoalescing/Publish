@@ -29,6 +29,8 @@ final class ContentMutationTests: PublishTestCase {
         ])
 
         XCTAssertEqual(site.sections[.one].items.count, 1)
+        XCTAssertEqual(site.sections[.one].items.first?.body.bodySource, "<div>Plot!</div>")
+
         XCTAssertEqual(site.sections[.one].items.first?.body.html, "<div>Plot!</div>")
     }
 
