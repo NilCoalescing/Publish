@@ -5,6 +5,7 @@
 */
 
 import Foundation
+import Files
 
 /// An item represents a website page that is contained within a `Section`,
 /// and is typically used to implement lists of content, such as a blogs or
@@ -25,6 +26,9 @@ public struct Item<Site: Website>: AnyItem, Hashable {
 
     /// Path within the section
     public let relativePath: Path
+    
+    /// The file on disk that was the source of this item (such as the markdown file)
+    public let sourceFile: File?
 
     /// Initialize a new item programmatically. You can also create items from
     /// Markdown using the `addMarkdownFiles` step.
@@ -34,18 +38,32 @@ public struct Item<Site: Website>: AnyItem, Hashable {
     /// - parameter tags: The item's tags.
     /// - parameter content: The main content of the item.
     /// - parameter rssProperties: Properties customizing the item's RSS representation.
-    public init(path: Path,
-                sectionID: Site.SectionID,
-                metadata: Site.ItemMetadata,
-                tags: [Tag] = [],
-                content: Content = Content(),
-                rssProperties: ItemRSSProperties = .init()) {
+    public init(
+        path: Path,
+        sectionID: Site.SectionID,
+        metadata: Site.ItemMetadata,
+        tags: [Tag] = [],
+        content: Content = Content(),
+        rssProperties: ItemRSSProperties = .init(),
+        sourceFile: File? = nil
+    ) {
         self.relativePath = path
         self.sectionID = sectionID
         self.metadata = metadata
         self.tags = tags
         self.content = content
         self.rssProperties = rssProperties
+        self.sourceFile = sourceFile
+    }
+}
+
+extension File: @retroactive Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.path)
+    }
+    
+    static func ==(lhs: File, rhs: File) -> Bool {
+        lhs.path == rhs.path
     }
 }
 

@@ -131,7 +131,9 @@ public extension PublishingStep {
     static func addMarkdownFiles(at path: Path = "Content") -> Self {
         step(named: "Add Markdown files from '\(path)' folder") { context in
             let folder = try context.folder(at: path)
-            try await MarkdownFileHandler().addMarkdownFiles(in: folder, to: &context)
+            try await TaskContext.$domain.withValue(TaskContext.websiteDomain) {
+                try await MarkdownFileHandler().addMarkdownFiles(in: folder, to: &context)
+            }
         }
     }
     

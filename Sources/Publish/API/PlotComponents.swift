@@ -85,8 +85,8 @@ public extension Node where Context == HTML.HeadContext {
 public extension Node where Context: HTML.BodyContext {
     /// Render a location's `Content.Body` as HTML within the current context.
     /// - parameter body: The body to render.
-    static func contentBody(_ body: Content.Body) -> Node {
-        .raw(body.html)
+    static func contentBody(_ body: Content.Body) -> Node<HTML.BodyContext> {
+        body.node
     }
 
     /// Render a string of inline Markdown as HTML within the current context.
@@ -148,12 +148,32 @@ internal extension Node where Context: RSSItemContext {
         )
     }
 
-    static func content<T>(for item: Item<T>, site: T) -> Node {
+    static func content<T>(for item: Item<T>, context: PublishingContext<T>) -> Node {
+        let site = context.site
         let baseURL = site.url
         let prefixes = (href: "href=\"", src: "src=\"")
 
         var html = item.rssProperties.bodyPrefix ?? ""
-        html.append(item.body.html)
+        
+        let htmlContent = TaskContext.$item.withValue(
+            TaskContext.Item.init(path: item.path, section: item.sectionID)
+        ) {
+            switch item.body.bodySource {
+            case let markdown as Content.Body.Markdown:
+                let markdownParser = context.markdownParser
+                // Parse markdown with rss context
+                let mdString = markdown.markdownString
+                return markdownParser.parse(mdString).html
+            case let nodeBody as Content.Body.BodyNode:
+                // Re-generate HTML with RSS context
+                return nodeBody.node.render(indentedBy: .none)
+            default:
+                return item.body.html
+            }
+        }
+        
+        
+        html.append(htmlContent)
         html.append(item.rssProperties.bodySuffix ?? "")
 
         var links = [(url: URL, range: ClosedRange<String.Index>, isHref: Bool)]()

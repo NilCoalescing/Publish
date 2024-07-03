@@ -13,9 +13,25 @@ public enum TaskContext {
         public let section: (any WebsiteSectionID)?
     }
     
+    
     @TaskLocal
     public static var item: Item?
+    
+    @TaskLocal
+    public static var domain: TaskContextDomain?
+    
+    static let websiteDomain = WebsiteGeneration()
+    static let rssDomain = RSSFeedGeneration()
+    static let podcastDomain = PodcastGeneration()
+    
+    public struct WebsiteGeneration: TaskContextDomain {}
+    public struct RSSFeedGeneration: TaskContextDomain {}
+    public struct PodcastGeneration: TaskContextDomain {}
 }
+
+public protocol TaskContextDomain {}
+
+
 
 
 internal extension TaskContext.Item {

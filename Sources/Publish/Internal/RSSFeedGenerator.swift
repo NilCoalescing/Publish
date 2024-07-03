@@ -57,25 +57,28 @@ private extension RSSFeedGenerator {
     }
 
     func makeFeed(containing items: [Item<Site>]) async -> RSS {
-        RSS(
-            .title(context.site.name),
-            .description(context.site.description),
-            .link(context.site.url),
-            .language(context.site.language),
-            .lastBuildDate(date, timeZone: context.dateFormatter.timeZone),
-            .pubDate(date, timeZone: context.dateFormatter.timeZone),
-            .ttl(Int(config.ttlInterval)),
-            .atomLink(context.site.url(for: config.targetPath)),
-            .group(await items.prefix(config.maximumItemCount).concurrentMap { item in
-                .item(
-                    .guid(for: item, site: context.site),
-                    .title(item.rssTitle),
-                    .description(item.description),
-                    .link(item.rssProperties.link ?? context.site.url(for: item)),
-                    .pubDate(item.date, timeZone: context.dateFormatter.timeZone),
-                    .content(for: item, site: context.site)
-                )
-            })
-        )
+        await TaskContext.$domain.withValue(TaskContext.rssDomain) {
+            RSS(
+                .title(context.site.name),
+                .description(context.site.description),
+                .link(context.site.url),
+                .language(context.site.language),
+                .lastBuildDate(date, timeZone: context.dateFormatter.timeZone),
+                .pubDate(date, timeZone: context.dateFormatter.timeZone),
+                .ttl(Int(config.ttlInterval)),
+                .atomLink(context.site.url(for: config.targetPath)),
+                .group(await items.prefix(config.maximumItemCount).concurrentMap { item in
+                    .item(
+                        .guid(for: item, site: context.site),
+                        .title(item.rssTitle),
+                        .description(item.description),
+                        .link(item.rssProperties.link ?? context.site.url(for: item)),
+                        .pubDate(item.date, timeZone: context.dateFormatter.timeZone),
+                        .content(for: item, context: context)
+                    )
+                })
+            )
+        }
+        
     }
 }

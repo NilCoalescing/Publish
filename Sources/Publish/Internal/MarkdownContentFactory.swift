@@ -37,7 +37,8 @@ internal struct MarkdownContentFactory<Site: Website> {
             metadata: metadata,
             tags: tags ?? [],
             content: content,
-            rssProperties: rssProperties ?? .init()
+            rssProperties: rssProperties ?? .init(),
+            sourceFile: file
         )
     }
 
@@ -71,7 +72,7 @@ private extension MarkdownContentFactory {
         return Content(
             title: title ?? markdown.title ?? file.nameExcludingExtension,
             description: description ?? "",
-            body: Content.Body(html: markdown.html),
+            body: Content.Body(html: markdown.html, markdown: try file.readAsString()),
             date: date,
             lastModified: lastModified,
             imagePath: imagePath,

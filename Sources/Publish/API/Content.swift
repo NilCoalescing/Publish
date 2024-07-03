@@ -6,6 +6,7 @@
 
 import Foundation
 import Plot
+import Ink
 
 /// Type representing a location's main content.
 public struct Content: Hashable, ContentProtocol {
@@ -46,13 +47,38 @@ public struct Content: Hashable, ContentProtocol {
     }
 }
 
+public protocol BodySource: Equatable {}
+
+
+
 public extension Content {
     /// Type that represents the main renderable body of a piece of content.
     struct Body: Hashable {
+        struct Markdown: BodySource {
+            let markdownString: String
+        }
+        
+        struct BodyNode: BodySource {
+            let node: Node<HTML.BodyContext>
+            
+            static func ==(lhs: Self, rhs: Self) -> Bool {
+                lhs.node.render() == rhs.node.render()
+            }
+        }
+        
+        
         /// The content's renderable HTML.
         public var html: String
         /// A node that can be used to embed the content in a Plot hierarchy.
-        public var node: Node<HTML.BodyContext> { .raw(html) }
+        public var node: Node<HTML.BodyContext> {
+            if let node = self.bodySource as? BodyNode {
+                return node.node
+            }
+            return .raw(html)
+        }
+        
+        public var bodySource: (any BodySource)?
+        
         /// Whether this value doesn't contain any content.
         public var isEmpty: Bool { html.isEmpty }
 
@@ -61,6 +87,13 @@ public extension Content {
         public init(html: String) {
             self.html = html
         }
+        
+        /// Initialize an instance with a ready-made HTML string.
+        /// - parameter html: The content HTML that the instance should cointain.
+        public init(html: String, markdown: String) {
+            self.html = html
+            self.bodySource = Markdown(markdownString: markdown)
+        }
 
         /// Initialize an instance with a Plot `Node`.
         /// - parameter node: The node to render. See `Node` for more information.
@@ -68,6 +101,7 @@ public extension Content {
         public init(node: Node<HTML.BodyContext>,
                     indentation: Indentation.Kind? = nil) {
             html = node.render(indentedBy: indentation)
+            bodySource = BodyNode(node: node)
         }
 
         /// Initialize an instance using Plot's `Component` API.
@@ -77,7 +111,15 @@ public extension Content {
                     @ComponentBuilder components: () -> Component) {
            self.init(node: .component(components()),
                      indentation: indentation)
-       }
+        }
+        
+        public static func ==(lhs: Self, rhs: Self) -> Bool {
+            lhs.html == rhs.html
+        }
+        
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(self.html)
+        }
     }
 }
 
