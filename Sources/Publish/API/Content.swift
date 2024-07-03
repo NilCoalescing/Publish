@@ -69,35 +69,48 @@ struct MarkdownNode: Component {
 public extension Content {
     /// Type that represents the main renderable body of a piece of content.
     struct Body: Hashable {
-        struct Markdown: BodySource {
+        public struct Markdown: BodySource {
             
-            let html: String
-            let markdownString: String
+            public let html: String
+            public let markdownString: String
             
-            var node: Node<HTML.BodyContext> {
+            public init(html: String, markdownString: String) {
+                self.html = html
+                self.markdownString = markdownString
+            }
+            
+            public var node: Node<HTML.BodyContext> {
                 .raw(html)
             }
         }
         
-        struct BodyNode: BodySource {
-            let node: Node<HTML.BodyContext>
+        public struct BodyNode: BodySource {
+            public let node: Node<HTML.BodyContext>
             
-            static func ==(lhs: Self, rhs: Self) -> Bool {
+            public static func ==(lhs: Self, rhs: Self) -> Bool {
                 lhs.node.render() == rhs.node.render()
             }
             
-            var html: String {
+            public var html: String {
                 node.render(indentedBy: .none)
+            }
+            
+            public init(node: Node<HTML.BodyContext>) {
+                self.node = node
             }
         }
         
         
-        struct RawBody: BodySource {
-            var node: Plot.Node<Plot.HTML.BodyContext> {
+        public struct RawBody: BodySource {
+            public var node: Plot.Node<Plot.HTML.BodyContext> {
                 .raw(html)
             }
             
-            let html: String
+            public let html: String
+            
+            public init(html: String) {
+                self.html = html
+            }
         }
         
         
