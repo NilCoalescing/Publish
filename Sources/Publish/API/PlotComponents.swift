@@ -169,7 +169,6 @@ internal extension Node where Context: RSSItemContext {
                 // Re-generate HTML with RSS context
                 return nodeBody.node.render(indentedBy: .none)
             default:
-                print("Raw body for: \(Swift.type(of: item.body.bodySource))")
                 return item.body.html
             }
         }
