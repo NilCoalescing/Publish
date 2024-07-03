@@ -57,7 +57,7 @@ public struct Item<Site: Website>: AnyItem, Hashable {
     }
 }
 
-extension File: @retroactive Hashable {
+extension File: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.path)
     }
