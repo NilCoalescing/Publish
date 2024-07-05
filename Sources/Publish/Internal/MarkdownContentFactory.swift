@@ -21,14 +21,14 @@ extension MarkdownParser {
         
         let markdownHeaderParts = markdownString.split(
             separator: "---\n",
-            maxSplits: 2
+            maxSplits: 1
         )
         
-        guard markdownString.count == 3 else {
+        guard markdownHeaderParts.count == 2 else {
             return self.parse(markdownString)
         }
         
-        let markdownHeader = String(markdownHeaderParts[1])
+        let markdownHeader = String(markdownHeaderParts[0])
         let placeholderFileString = """
         ---
         \(markdownHeader)
