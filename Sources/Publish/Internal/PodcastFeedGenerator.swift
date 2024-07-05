@@ -98,7 +98,7 @@ private extension PodcastFeedGenerator {
                     let metadata = item.metadata.podcast
 
                     return TaskContext.$item.withValue(
-                        TaskContext.Item.init(path: item.path, section: item.sectionID)) {
+                        TaskContext.Item.init(path: item.path, section: item.sectionID, metadata: nil)) {
                             return .item(
                                 .guid(for: item, site: context.site),
                                 .title(title),

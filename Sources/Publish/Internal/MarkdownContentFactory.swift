@@ -9,12 +9,59 @@ import Ink
 import Files
 import Codextended
 
+extension MarkdownParser {
+    func parseMarkdownFile<Site: Website>(
+        _ markdownString: String,
+        for site: Site.Type,
+        with dateFormatter: DateFormatter
+    ) -> Ink.Markdown {
+        guard markdownString.starts(with: "---") else {
+            return self.parse(markdownString)
+        }
+        
+        let markdownHeaderParts = markdownString.split(
+            separator: "---\n",
+            maxSplits: 2
+        )
+        
+        guard markdownString.count == 3 else {
+            return self.parse(markdownString)
+        }
+        
+        let markdownHeader = String(markdownHeaderParts[1])
+        let placeholderFileString = """
+        ---
+        \(markdownHeader)
+        ---
+        
+        # Fake markdown body
+        
+        Example text
+        """
+        let markdown = self.parse(placeholderFileString)
+        let metadataValues = markdown.metadata
+        let decoder = MarkdownMetadataDecoder(metadata: metadataValues, dateFormatter: dateFormatter)
+        
+        do {
+            let metaData = try Site.ItemMetadata(from: decoder)
+            
+            return TaskContext.$item.with(metadata: metaData) {
+                self.parse(markdownString)
+            }
+        } catch {
+            return self.parse(markdownString)
+        }
+    }
+}
+
+
+
 internal struct MarkdownContentFactory<Site: Website> {
     let parser: MarkdownParser
     let dateFormatter: DateFormatter
 
     func makeContent(fromFile file: File) throws -> Content {
-        let markdown = try parser.parse(file.readAsString())
+        let markdown = try parser.parseMarkdownFile(file.readAsString(), for: Site.self, with: dateFormatter)
         let decoder = makeMetadataDecoder(for: markdown)
         return try makeContent(fromMarkdown: markdown, file: file, decoder: decoder)
     }
@@ -22,9 +69,9 @@ internal struct MarkdownContentFactory<Site: Website> {
     func makeItem(fromFile file: File,
                   at path: Path,
                   sectionID: Site.SectionID) throws -> Item<Site> {
-        let markdown = try parser.parse(file.readAsString())
+  
+        let markdown = try parser.parseMarkdownFile(file.readAsString(), for: Site.self, with: dateFormatter)
         let decoder = makeMetadataDecoder(for: markdown)
-
         let metadata = try Site.ItemMetadata(from: decoder)
         let path = try decoder.decodeIfPresent("path", as: Path.self) ?? path
         let tags = try decoder.decodeIfPresent("tags", as: [Tag].self)
@@ -43,7 +90,7 @@ internal struct MarkdownContentFactory<Site: Website> {
     }
 
     func makePage(fromFile file: File, at path: Path) throws -> Page {
-        let markdown = try parser.parse(file.readAsString())
+        let markdown = try parser.parseMarkdownFile(file.readAsString(), for: Site.self, with: dateFormatter)
         let decoder = makeMetadataDecoder(for: markdown)
         let content = try makeContent(fromMarkdown: markdown, file: file, decoder: decoder)
         return Page(path: path, content: content)

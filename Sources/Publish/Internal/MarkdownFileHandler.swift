@@ -16,7 +16,7 @@ internal struct MarkdownFileHandler<Site: Website> {
         
         if let indexFile = try? folder.file(named: "index.md") {
             do {
-                try TaskContext.$item.withValue(TaskContext.Item(path: "", section: nil)) {
+                try TaskContext.$item.withValue(TaskContext.Item(path: "", section: nil, metadata: nil)) {
                     context.index.content = try factory.makeContent(fromFile: indexFile)
                 }
             } catch {
@@ -39,7 +39,8 @@ internal struct MarkdownFileHandler<Site: Website> {
             var sectionContent: Content?
             let taskItem = TaskContext.Item(
                 path: immutableContext.sections[sectionID].path,
-                section: sectionID
+                section: sectionID,
+                metadata: nil
             )
             
             

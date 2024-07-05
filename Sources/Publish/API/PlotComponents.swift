@@ -156,7 +156,7 @@ internal extension Node where Context: RSSItemContext {
         var html = item.rssProperties.bodyPrefix ?? ""
         
         let htmlContent = TaskContext.$item.withValue(
-            TaskContext.Item.init(path: item.path, section: item.sectionID)
+            TaskContext.Item.init(path: item.path, section: item.sectionID, metadata: nil)
         ) {
             let bodySource = item.body.bodySource
             switch bodySource {
@@ -164,7 +164,7 @@ internal extension Node where Context: RSSItemContext {
                 let markdownParser = context.markdownParser
                 // Parse markdown with rss context
                 let mdString = markdown.markdownString
-                return markdownParser.parse(mdString).html
+                return markdownParser.parseMarkdownFile(mdString, for: T.self, with: context.dateFormatter).html
             case let nodeBody as Content.Body.BodyNode:
                 // Re-generate HTML with RSS context
                 return nodeBody.node.render(indentedBy: .none)
