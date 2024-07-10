@@ -8,13 +8,25 @@ import Plot
 import Files
 import CollectionConcurrencyKit
 
-internal struct HTMLGenerator<Site: Website> {
+public struct HTMLGenerator<Site: Website> {
     let theme: Theme<Site>
     let indentation: Indentation.Kind?
     let fileMode: HTMLFileMode
     let context: PublishingContext<Site>
+    
+    public init(
+        theme: Theme<Site>,
+        indentation: Indentation.Kind? = nil,
+        fileMode: HTMLFileMode,
+        context: PublishingContext<Site>
+    ) {
+        self.theme = theme
+        self.indentation = indentation
+        self.fileMode = fileMode
+        self.context = context
+    }
 
-    func generate() async throws {
+    public func generate() async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask { try await copyThemeResources() }
             group.addTask { try generateIndexHTML() }
