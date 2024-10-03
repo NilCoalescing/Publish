@@ -468,7 +468,7 @@ public extension PublishingStep {
     /// - parameter method: The method to use when deploying the website.
     static func deploy(using method: DeploymentMethod<Site>) -> Self {
         step(named: "Deploy using \(method.name)", kind: .deployment) { context in
-            try method.body(context)
+            try await method.body(context)
         }
     }
 }
