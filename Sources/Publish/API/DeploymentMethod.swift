@@ -84,7 +84,7 @@ public extension DeploymentMethod {
                     at: folder.path
                 )
             } catch let error as ShellOutError {
-                throw PublishingError(infoMessage: error.message)
+                throw PublishingError(infoMessage: error.message, underlyingError: error)
             } catch {
                 throw error
             }

@@ -57,7 +57,7 @@ extension PublishingPipeline {
                 throw error.publishingError(forStepNamed: step.name)
             } catch {
                 let message = "An unknown error occurred: \(error.localizedDescription)"
-                throw PublishingError(infoMessage: message)
+                throw PublishingError(infoMessage: message, underlyingError: error)
             }
         }
 
@@ -123,7 +123,8 @@ private extension PublishingPipeline {
             } catch {
                 throw PublishingError(
                     path: path,
-                    infoMessage: "Could not find the requested root folder"
+                    infoMessage: "Could not find the requested root folder",
+                    underlyingError: error
                 )
             }
         }
