@@ -104,9 +104,12 @@ public extension Website {
     /// - parameter file: The file that this method is called from (auto-inserted).
     /// - parameter line: The line that this method is called from (auto-inserted).
     @discardableResult
-    func publish(at path: Path? = nil,
-                 using steps: [PublishingStep<Self>],
-                 file: StaticString = #file) throws -> PublishedWebsite<Self> {
+    func publish(
+        at path: Path? = nil,
+        using steps: [PublishingStep<Self>],
+        filter: Set<PublishingStep<Self>.Kind> = [.generation],
+        file: StaticString = #file
+    ) throws -> PublishedWebsite<Self> {
         let pipeline = PublishingPipeline(
             steps: steps,
             originFilePath: Path("\(file)")
@@ -118,7 +121,7 @@ public extension Website {
         
         Task {
             do {
-                let website = try await pipeline.execute(for: self, at: path)
+                let website = try await pipeline.execute(for: self, at: path, ofKind: filter)
                 completionHandler(.success(website))
             } catch {
                 completionHandler(.failure(error))
@@ -184,12 +187,14 @@ public extension Website {
     @discardableResult
     func publish(at path: Path? = nil,
                  using steps: [PublishingStep<Self>],
-                 file: StaticString = #file) async throws -> PublishedWebsite<Self> {
+                 filter: Set<PublishingStep<Self>.Kind> = [.generation],
+                 file: StaticString = #file
+    ) async throws -> PublishedWebsite<Self> {
         let pipeline = PublishingPipeline(
             steps: steps,
             originFilePath: Path("\(file)")
         )
-        return try await pipeline.execute(for: self, at: path)
+        return try await pipeline.execute(for: self, at: path, ofKind: filter)
     }
 }
 

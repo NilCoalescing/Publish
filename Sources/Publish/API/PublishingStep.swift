@@ -475,7 +475,7 @@ public extension PublishingStep {
 
 // MARK: - Implementation details
 
-internal extension PublishingStep {
+public extension PublishingStep {
     enum Kind: String {
         case system
         case generation

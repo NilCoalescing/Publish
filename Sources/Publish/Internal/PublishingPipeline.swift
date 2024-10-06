@@ -16,22 +16,25 @@ internal struct PublishingPipeline<Site: Website> {
 }
 
 extension PublishingPipeline {
-    func execute(for site: Site, at path: Path?) async throws -> PublishedWebsite<Site> {
-        let stepKind = resolveStepKind()
+    func execute(
+        for site: Site,
+        at path: Path?,
+        ofKind stepKinds: Set<PublishingStep<Site>.Kind>
+    ) async throws -> PublishedWebsite<Site> {
 
         let folders = try setUpFolders(
             withExplicitRootPath: path,
-            shouldEmptyOutputFolder: stepKind == .generation
+            shouldEmptyOutputFolder: stepKinds.contains(.generation)
         )
 
         let steps = self.steps.flatMap { step in
-            runnableSteps(ofKind: stepKind, from: step)
+            runnableSteps(ofKind: stepKinds, from: step)
         }
 
         guard let firstStep = steps.first else {
             throw PublishingError(
                 infoMessage: """
-                \(site.name) has no \(stepKind.rawValue) steps.
+                \(site.name) has no \(stepKinds) steps.
                 """
             )
         }
@@ -133,23 +136,16 @@ private extension PublishingPipeline {
         return try originFile.resolveSwiftPackageFolder()
     }
 
-    func resolveStepKind() -> Step.Kind {
-        let deploymentFlags: Set<String> = ["--deploy", "-d"]
-        let shouldDeploy = CommandLine.arguments.contains(where: deploymentFlags.contains)
-        return shouldDeploy ? .deployment : .generation
-    }
-
-    func runnableSteps(ofKind kind: Step.Kind, from step: Step) -> [RunnableStep] {
-        switch step.kind {
-        case .system, kind: break
-        default: return []
-        }
+    func runnableSteps(ofKind kinds: Set<Step.Kind>, from step: Step) -> [RunnableStep] {
+        
+        guard step.kind == .system || kinds.contains(step.kind) else { return [] }
+        
 
         switch step.body {
         case .empty:
             return []
         case .group(let steps):
-            return steps.flatMap { runnableSteps(ofKind: kind, from: $0) }
+            return steps.flatMap { runnableSteps(ofKind: kinds, from: $0) }
         case .operation(let name, let closure):
             return [RunnableStep(name: name, closure: closure)]
         }
