@@ -16,7 +16,9 @@ public struct PublishingError: Equatable {
     public let infoMessage: String
     /// Any underlying error message that this error is based on.
     public var underlyingErrorMessage: String?
-
+    /// Wrapped error
+    public var underlyingError: Error?
+    
     /// Initialize a new error instance.
     /// - Parameter stepName: Any step that the error was encountered during.
     /// - Parameter path: Any path that the error was encountered at.
@@ -30,6 +32,18 @@ public struct PublishingError: Equatable {
         self.path = path
         self.infoMessage = infoMessage
         self.underlyingErrorMessage = underlyingError?.localizedDescription
+        self.underlyingError = underlyingError
+    }
+    
+    public static func ==(lhs: PublishingError, rhs: PublishingError) -> Bool {
+        lhs.equatable(to: rhs)
+    }
+    
+    func equatable(to other: PublishingError) -> Bool {
+        stepName == other.stepName
+        && path == other.path
+        && infoMessage == other.infoMessage
+        && underlyingErrorMessage == other.underlyingErrorMessage
     }
 }
 
