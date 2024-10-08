@@ -167,6 +167,8 @@ public extension PublishingContext {
         }
 
         do {
+            let outputFolderFilesString = folders.output.files.includingHidden.map(\.path).joined(separator: ", ")
+            CommandLine.output("Copying top level files \(outputFolderFilesString)", as: .info)
             try folders.output.subfolders.forEach { try $0.copy(to: outputFolder) }
             try folders.output.files.includingHidden.forEach { try $0.copy(to: outputFolder) }
             return folder
