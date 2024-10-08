@@ -5,14 +5,31 @@
 */
 
 import Foundation
+import Logging
 
-internal extension CommandLine {
+public extension CommandLine {
     enum OutputKind {
         case info
         case warning
         case error
         case success
+        
+        var logLevel: Logger.Level {
+            switch self {
+            case .info:
+                return .info
+            case .warning:
+                return .warning
+            case .error:
+                return .error
+            case .success:
+                return .debug
+            }
+        }
     }
+    
+    @TaskLocal
+    static var logger: Logger? = nil
 
     static func output(_ string: String, as kind: OutputKind) {
         var string = string + "\n"
@@ -21,7 +38,11 @@ internal extension CommandLine {
             string = "\(emoji) \(string)"
         }
 
-        fputs(string, kind.target)
+        if let logger {
+            logger.log(level: kind.logLevel, "\(string)")
+        } else {
+            fputs(string, kind.target)
+        }
     }
 }
 

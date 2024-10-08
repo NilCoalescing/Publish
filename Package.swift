@@ -43,7 +43,8 @@ let package = Package(
         .package(
             url: "https://github.com/johnsundell/collectionConcurrencyKit.git",
             from: "0.1.0"
-        )
+        ),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.6.1"),
     ],
     targets: [
         .target(
@@ -56,6 +57,7 @@ let package = Package(
                 .product(name:"ShellOut", package: "ShellOut"),
                 .product(name:"Sweep", package: "Sweep"),
                 .product(name:"CollectionConcurrencyKit", package: "CollectionConcurrencyKit"),
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
         .executableTarget(
