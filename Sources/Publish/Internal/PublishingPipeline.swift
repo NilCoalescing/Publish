@@ -142,7 +142,8 @@ private extension PublishingPipeline {
                 )
             }
         }
-
+        
+        CommandLine.output("No explicit root folder path was provided, using default", as: .info)
         let originFile = try File(path: originFilePath.string)
         return try originFile.resolveSwiftPackageFolder()
     }

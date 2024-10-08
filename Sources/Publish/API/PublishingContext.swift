@@ -373,6 +373,7 @@ private extension PublishingContext {
     }
 
     func createFile(at path: Path, in folder: Folder) throws -> File {
+        CommandLine.output("Creating file at \(path.string) in folder \(folder.path)", as: .info)
         do {
             return try folder.createFileIfNeeded(at: path.string)
         } catch {
