@@ -277,6 +277,8 @@ public extension PublishingContext {
 
 internal extension PublishingContext {
     mutating func generationWillBegin() {
+        CommandLine.output("Generation will begin...", as: .info)
+
         try? updateLastGenerationDate()
     }
 

@@ -26,11 +26,14 @@ extension PublishingPipeline {
             withExplicitRootPath: path,
             shouldEmptyOutputFolder: stepKinds.contains(.generation)
         )
+        
+        CommandLine.output("Did set up folders", as: .info)
+
 
         let steps = self.steps.flatMap { step in
             runnableSteps(ofKind: stepKinds, from: step)
         }
-
+        
         guard let firstStep = steps.first else {
             throw PublishingError(
                 infoMessage: """
@@ -85,14 +88,20 @@ private extension PublishingPipeline {
 
     func setUpFolders(withExplicitRootPath path: Path?,
                       shouldEmptyOutputFolder: Bool) throws -> Folder.Group {
+        
+        CommandLine.output("Setting up output folders for path \(path?.string ?? "none")", as: .info)
         let root = try resolveRootFolder(withExplicitPath: path)
+        CommandLine.output("Root folder is \(root.path)", as: .info)
         let outputFolderName = "Output"
 
         if shouldEmptyOutputFolder {
             try? root.subfolder(named: outputFolderName).empty(includingHidden: true)
+            CommandLine.output("Did empty output folder is \(outputFolderName)", as: .info)
         }
 
         do {
+            CommandLine.output("Creating root folder structure", as: .info)
+
             let outputFolder = try root.createSubfolderIfNeeded(
                 withName: outputFolderName
             )
@@ -104,6 +113,8 @@ private extension PublishingPipeline {
             let cacheFolder = try internalFolder.createSubfolderIfNeeded(
                 withName: "Caches"
             )
+            
+            CommandLine.output("Created root folder structure", as: .info)
 
             return Folder.Group(
                 root: root,
