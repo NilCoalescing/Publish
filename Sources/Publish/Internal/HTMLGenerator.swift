@@ -149,7 +149,6 @@ private extension HTMLGenerator {
         let html = try generator(location, context)
         let path = filePath(for: location, fileMode: fileMode)
         let file = try context.createOutputFile(at: path)
-        CommandLine.output("About to write HTML for \(location.title)@\(location.path) to \(file.path)", as: .info)
         try file.write(html.render(indentedBy: indentation))
     }
 
